@@ -218,7 +218,10 @@ class ProductionSettings(TestCase):
     """Boot Django exactly as the server does (DEBUG off) and run its own deploy checklist."""
 
     def run_manage(self, *args, **env):
-        e = {k: v for k, v in os.environ.items() if k not in ("DEBUG", "DJANGO_SECRET_KEY")}
+        # Hermetic: ignore this machine's real .env and any config in the environment.
+        keep = ("PATH", "HOME", "LANG", "PYTHONPATH", "VIRTUAL_ENV")
+        e = {k: v for k, v in os.environ.items() if k in keep}
+        e["ENV_FILE"] = os.devnull
         e.update(env)
         return subprocess.run([sys.executable, "manage.py", *args], cwd=BASE, env=e, capture_output=True, text=True)
 

@@ -15,7 +15,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR / ".env")
+# ENV_FILE lets tests (and odd setups) point at a different file, or at none.
+load_dotenv(os.environ.get("ENV_FILE") or BASE_DIR / ".env")
 
 TESTING = "test" in sys.argv
 
