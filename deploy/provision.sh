@@ -150,7 +150,7 @@ else
     origins=""; for n in $SERVER_NAMES; do origins="${origins:+$origins,}https://$n,http://$n"; done
     hosts="$(printf '%s' "$SERVER_NAMES" | tr ' ' ','),localhost,127.0.0.1"
     SECRET="$(python3 -c 'import secrets; print(secrets.token_urlsafe(60))')"
-    python3 - "$REPO_DIR/.env.example" "$APP_ROOT/shared/.env" "$SECRET" "$hosts" "$origins" "$DB_URL" "$APP_ROOT/shared/db.sqlite3" "$SQLITE" "$DOMAIN" <<'PY'
+    python3 - "$REPO_DIR/.env.example" "$APP_ROOT/shared/.env" "$SECRET" "$hosts" "$origins" "$DB_URL" "$APP_ROOT/shared/data/db.sqlite3" "$SQLITE" "$DOMAIN" <<'PY'
 import re, sys
 src, dest, secret, hosts, origins, db_url, sqlite_path, sqlite, domain = sys.argv[1:10]
 s = open(src).read()
@@ -171,9 +171,11 @@ PY
     chmod 640 "$APP_ROOT/shared/.env"
 fi
 if [ "$SQLITE" = "1" ]; then
-    touch "$APP_ROOT/shared/db.sqlite3"
-    chown "$SERVICE_USER:$SERVICE_USER" "$APP_ROOT/shared/db.sqlite3"
-    chmod 660 "$APP_ROOT/shared/db.sqlite3"
+    # SQLite writes a journal file NEXT TO the database, so the whole folder
+    # (not just the file) must belong to the service user.
+    mkdir -p "$APP_ROOT/shared/data"
+    chown "$SERVICE_USER:$SERVICE_USER" "$APP_ROOT/shared/data"
+    chmod 750 "$APP_ROOT/shared/data"
 fi
 
 # --- 5. deploy.conf and the deploy script -----------------------------------

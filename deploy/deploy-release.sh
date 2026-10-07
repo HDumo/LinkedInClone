@@ -12,7 +12,7 @@
 #     releases/<name>/.deploy_ok   written only after a fully clean build
 #     shared/.env             the ONE config file, symlinked into every release
 #     shared/media/           profile photos, symlinked into every release
-#     shared/db.sqlite3       only when running on SQLite (no DATABASE_URL)
+#     shared/data/db.sqlite3  only when running on SQLite (no DATABASE_URL)
 #     current -> releases/X   systemd and nginx always point HERE
 #     backups/                database dump taken right before each migrate
 #     logs/deploy-<name>.log  full output of each deploy (survives disconnects)
@@ -192,7 +192,7 @@ env_value() {
 
 sqlite_file() {
     local p; p="$(env_value SQLITE_PATH)"
-    echo "${p:-$SHARED_DIR/db.sqlite3}"
+    echo "${p:-$SHARED_DIR/data/db.sqlite3}"
 }
 
 # Run a command as the service user (so files it creates have the right owner).
