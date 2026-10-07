@@ -37,7 +37,8 @@ ul{padding-left:18px}.errorlist{color:#cc1016;list-style:none;padding:0;margin:4
   <a href="{% url 'inbox' %}">Messaging{% if unread_messages %} <span class="badge">{{ unread_messages }}</span>{% endif %}</a>
   <a href="{% url 'notifications' %}">Notifications{% if unread_notifications %} <span class="badge">{{ unread_notifications }}</span>{% endif %}</a>
   <a href="{% url 'profile' user.username %}">Me</a>
-  <a href="{% url 'password_change' %}">Settings</a>
+  <a href="{% url 'signed_in_devices' %}">Account</a>{% if user.is_staff %}
+  <a href="{% url 'security_home' %}">Security</a>{% endif %}
   <form action="{% url 'search' %}" method="get"><input name="q" placeholder="Search people, jobs, companies" aria-label="Search"></form>
   <form action="{% url 'logout' %}" method="post">{% csrf_token %}<button class="sec">Sign out</button></form>
   {% else %}

@@ -8,7 +8,8 @@ from .models import Endorsement, Profile, Skill
 
 
 def make_user(name, **kw):
-    return User.objects.create_user(name, f"{name}@example.com", "pw-12345-xyz", first_name=name.title(), **kw)
+    kw.setdefault("email", f"{name}@example.com")
+    return User.objects.create_user(name, password="pw-12345-xyz", first_name=name.title(), **kw)
 
 
 class SignupLoginTests(TestCase):

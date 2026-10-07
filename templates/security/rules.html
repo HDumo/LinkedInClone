@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Security rules{% endblock %}
+{% block content %}
+{% include "security/_nav.html" %}
+<div class="card"><div class="row"><h1>Automatic rules</h1><a class="btn" href="{% url 'security_rule_new' %}">+ New rule</a></div>
+<p class="muted">Checked every time an address loads a page or tries to sign in. Whitelisted and private addresses are never touched.</p></div>
+{% for r, text in rows %}<div class="card"><div class="row"><span><strong>{{ r.name }}</strong>{% if not r.enabled %} <span class="muted">(off)</span>{% endif %}<br>
+<span class="muted">If {{ text }} → {{ r.get_action_display }}{% if r.times_matched %} · matched {{ r.times_matched }}×{% endif %}</span></span>
+<span><a href="{% url 'security_rule_edit' r.id %}">Edit</a>
+<form class="inline" method="post" action="{% url 'security_rule_action' r.id %}">{% csrf_token %}<button class="sec" name="action" value="toggle">{% if r.enabled %}Turn off{% else %}Turn on{% endif %}</button>
+<button class="sec" name="action" value="delete" onclick="return confirm('Delete this rule?')">Delete</button></form></span></div></div>
+{% empty %}<div class="card muted">No rules yet.</div>{% endfor %}
+{% endblock %}

@@ -1,0 +1,9 @@
+# Installed to /etc/systemd/system/linkedclone-chores.service by provision.sh.
+# Daily housekeeping: deletes old sign-in history, expired unlock codes and
+# counters, and old page views (the limits are set in Security -> Settings).
+[Unit]
+Description=LinkedClone — daily housekeeping
+
+[Service]
+Type=oneshot
+ExecStart=__APP_ROOT__/deploy-release.sh manage security_chores

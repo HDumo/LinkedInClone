@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}People{% endblock %}
+{% block content %}
+{% include "security/_nav.html" %}
+<div class="card"><h1>People</h1><form method="get"><input name="q" value="{{ q }}" placeholder="Name, username or email"></form></div>
+{% for u in page %}<div class="card"><div class="row"><span><strong>{{ u.username }}</strong> <span class="muted">{{ u.email }}{% if u.is_superuser %} · administrator{% elif u.is_staff %} · staff{% endif %}{% if not u.is_active %} · <strong style="color:#cc1016">deactivated</strong>{% endif %}
+{% if u.security.must_change_password %} · must change password{% endif %}</span></span>
+<form method="post" class="inline">{% csrf_token %}<input type="hidden" name="user_id" value="{{ u.id }}">
+<select name="action" style="width:auto"><option value="require_change">Require new password</option><option value="clear_require">Stop requiring new password</option><option value="sign_out">Sign out everywhere</option><option value="unlock">Unlock</option>
+{% if u.is_active %}<option value="deactivate">Deactivate</option>{% else %}<option value="activate">Reactivate</option>{% endif %}</select> <button class="sec">Go</button></form></div></div>
+{% empty %}<div class="card muted">No one found.</div>{% endfor %}
+{% include "security/_pager.html" %}
+{% endblock %}

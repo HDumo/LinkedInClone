@@ -1,0 +1,11 @@
+# Installed to /etc/systemd/system/linkedclone-chores.timer by provision.sh.
+[Unit]
+Description=LinkedClone — daily housekeeping
+
+[Timer]
+OnCalendar=*-*-* 04:20:00
+RandomizedDelaySec=15min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

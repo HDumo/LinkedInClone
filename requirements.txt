@@ -1,7 +1,10 @@
 Django>=5.2,<5.3
+argon2-cffi>=23.1
 django-ratelimit>=4.1,<5
-gunicorn>=22
+gunicorn>=26.2,<27
+maxminddb>=2.6
 Pillow>=10.0
 psycopg[binary]>=3.2
 python-dotenv>=1.0
+requests>=2.31
 whitenoise>=6.7

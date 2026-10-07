@@ -118,9 +118,13 @@ if ! id "$SERVICE_USER" > /dev/null 2>&1; then
     c_yellow "Creating the '$SERVICE_USER' system user the app will run as..."
     useradd --system --user-group --home-dir "$APP_ROOT" --shell /usr/sbin/nologin "$SERVICE_USER"
 fi
-mkdir -p "$APP_ROOT/releases" "$APP_ROOT/shared/media" "$APP_ROOT/backups" "$APP_ROOT/logs"
+mkdir -p "$APP_ROOT/releases" "$APP_ROOT/shared/media" "$APP_ROOT/shared/data" "$APP_ROOT/backups" "$APP_ROOT/logs"
 chmod 755 "$APP_ROOT" "$APP_ROOT/shared"            # nginx must be able to walk down to shared/media
 chown -R "$SERVICE_USER:$SERVICE_USER" "$APP_ROOT/shared/media"
+# shared/data holds the SQLite file (if used) and the optional IP-location database.
+# SQLite writes a journal NEXT TO the database, so the whole folder must belong to the service user.
+chown "$SERVICE_USER:$SERVICE_USER" "$APP_ROOT/shared/data"
+chmod 750 "$APP_ROOT/shared/data"
 chmod 750 "$APP_ROOT/backups"
 
 # --- 3. Database ------------------------------------------------------------
@@ -150,9 +154,9 @@ else
     origins=""; for n in $SERVER_NAMES; do origins="${origins:+$origins,}https://$n,http://$n"; done
     hosts="$(printf '%s' "$SERVER_NAMES" | tr ' ' ','),localhost,127.0.0.1"
     SECRET="$(python3 -c 'import secrets; print(secrets.token_urlsafe(60))')"
-    python3 - "$REPO_DIR/.env.example" "$APP_ROOT/shared/.env" "$SECRET" "$hosts" "$origins" "$DB_URL" "$APP_ROOT/shared/data/db.sqlite3" "$SQLITE" "$DOMAIN" <<'PY'
+    python3 - "$REPO_DIR/.env.example" "$APP_ROOT/shared/.env" "$SECRET" "$hosts" "$origins" "$DB_URL" "$APP_ROOT/shared/data/db.sqlite3" "$SQLITE" "$DOMAIN" "$APP_ROOT/shared/data/dbip-city-lite.mmdb" <<'PY'
 import re, sys
-src, dest, secret, hosts, origins, db_url, sqlite_path, sqlite, domain = sys.argv[1:10]
+src, dest, secret, hosts, origins, db_url, sqlite_path, sqlite, domain, ip_db = sys.argv[1:11]
 s = open(src).read()
 def setkey(s, key, val):
     return re.sub(rf"^{key}=.*$", lambda m: f"{key}={val}", s, count=1, flags=re.M)
@@ -165,17 +169,11 @@ s = setkey(s, "DATABASE_URL", db_url)
 if sqlite == "1":
     s = setkey(s, "SQLITE_PATH", sqlite_path)
 s = setkey(s, "DEFAULT_FROM_EMAIL", f"LinkedClone <no-reply@{domain}>")
+s = setkey(s, "IP_LOCATION_DB", ip_db)
 open(dest, "w").write(s)
 PY
     chown "root:$SERVICE_USER" "$APP_ROOT/shared/.env"
     chmod 640 "$APP_ROOT/shared/.env"
-fi
-if [ "$SQLITE" = "1" ]; then
-    # SQLite writes a journal file NEXT TO the database, so the whole folder
-    # (not just the file) must belong to the service user.
-    mkdir -p "$APP_ROOT/shared/data"
-    chown "$SERVICE_USER:$SERVICE_USER" "$APP_ROOT/shared/data"
-    chmod 750 "$APP_ROOT/shared/data"
 fi
 
 # --- 5. deploy.conf and the deploy script -----------------------------------
@@ -194,6 +192,8 @@ c_yellow "Installing the systemd service, nightly backup timer and nginx site...
 fill "$HERE/linkedclone.service" "$SYSTEMD_DIR/$SERVICE_NAME.service"
 fill "$HERE/linkedclone-backup.service" "$SYSTEMD_DIR/$SERVICE_NAME-backup.service"
 fill "$HERE/linkedclone-backup.timer" "$SYSTEMD_DIR/$SERVICE_NAME-backup.timer"
+fill "$HERE/linkedclone-chores.service" "$SYSTEMD_DIR/$SERVICE_NAME-chores.service"
+fill "$HERE/linkedclone-chores.timer" "$SYSTEMD_DIR/$SERVICE_NAME-chores.timer"
 mkdir -p "$NGINX_AVAILABLE" "$NGINX_ENABLED" "$NGINX_CONFD" /var/www/certbot
 cp "$HERE/nginx-limits.conf" "$NGINX_CONFD/linkedclone-limits.conf"
 if [ ! -f "$NGINX_AVAILABLE/$SERVICE_NAME" ] || ! grep -q ssl_certificate "$NGINX_AVAILABLE/$SERVICE_NAME"; then
@@ -208,6 +208,7 @@ if command -v systemctl > /dev/null 2>&1; then
     systemctl daemon-reload
     systemctl enable "$SERVICE_NAME" > /dev/null 2>&1 || true
     systemctl enable --now "$SERVICE_NAME-backup.timer" > /dev/null 2>&1 || true
+    systemctl enable --now "$SERVICE_NAME-chores.timer" > /dev/null 2>&1 || true
     systemctl reload nginx 2> /dev/null || systemctl restart nginx || true
 fi
 

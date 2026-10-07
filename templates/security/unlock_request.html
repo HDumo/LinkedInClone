@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Unlock your account{% endblock %}
+{% block content %}
+<div class="card"><h1>Locked out?</h1><p class="muted">Enter your username or email. If we find the account, we'll email a 6-digit code that unlocks it.</p>
+<form method="post">{% csrf_token %}<p><input name="identifier" placeholder="Username or email" required autofocus></p><button>Send me a code</button></form>
+<p class="muted"><a href="{% url 'password_reset' %}">Forgot your password instead?</a></p></div>
+{% endblock %}

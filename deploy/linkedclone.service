@@ -15,6 +15,7 @@ WorkingDirectory=__APP_ROOT__/current
 EnvironmentFile=__APP_ROOT__/current/.env
 ExecStart=__APP_ROOT__/current/venv/bin/gunicorn \
     --workers 3 \
+    --no-control-socket \
     --bind 127.0.0.1:8000 \
     --access-logfile - \
     --error-logfile - \

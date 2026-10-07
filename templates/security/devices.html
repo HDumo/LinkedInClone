@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Signed-in devices{% endblock %}
+{% block content %}
+<div class="card"><h1>Where you're signed in</h1>
+{% if current %}<p><strong>This device:</strong> {{ current.device }} <span class="muted">· {{ current.ip_address }} · signed in {{ current.created_at|timesince }} ago</span></p>{% endif %}
+{% for s in others %}<div class="row"><span>{{ s.device }} <span class="muted">· {{ s.ip_address }} · last used {{ s.last_seen|timesince }} ago</span></span>
+<form class="inline" method="post">{% csrf_token %}<input type="hidden" name="action" value="sign_out_one"><input type="hidden" name="device_id" value="{{ s.id }}"><button class="sec">Sign out</button></form></div><hr>
+{% empty %}<p class="muted">You're not signed in anywhere else.</p>{% endfor %}
+{% if others %}<form method="post">{% csrf_token %}<input type="hidden" name="action" value="sign_out_others"><button>Sign out of all other devices</button></form>{% endif %}
+<p class="muted"><a href="{% url 'my_activity' %}">See your recent sign-in activity</a> · <a href="{% url 'password_change' %}">Change your password</a></p></div>
+{% endblock %}

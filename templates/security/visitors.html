@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Visitors{% endblock %}
+{% block content %}
+{% include "security/_nav.html" %}
+<div class="card"><h1>Visitor addresses</h1>
+<form method="get" class="row" style="justify-content:flex-start"><input name="q" value="{{ q }}" placeholder="Address, country code or city" style="max-width:260px">
+<label><input type="checkbox" name="blocked" value="1" style="width:auto"{% if blocked_only %} checked{% endif %}> Blocked only</label>
+<select name="sort" style="max-width:200px"><option value="-hit_count">Most visits</option><option value="-last_seen"{% if sort == "-last_seen" %} selected{% endif %}>Latest</option><option value="-first_seen"{% if sort == "-first_seen" %} selected{% endif %}>Newest</option><option value="country"{% if sort == "country" %} selected{% endif %}>Country</option></select><button>Filter</button></form>
+<p class="muted">Your own address, the server, and whitelisted addresses can't be blocked. Locations need the optional IP database (<code>update_ip_location_db</code>).</p></div>
+<form method="post" class="card">{% csrf_token %}
+{% for v in page %}<div class="row"><label><input type="checkbox" name="ids" value="{{ v.id }}" style="width:auto"> <strong>{{ v.ip_address }}</strong>
+<span class="muted">· {{ v.hit_count }} visit{{ v.hit_count|pluralize }} · {{ v.city }}{% if v.city and v.country %}, {% endif %}{{ v.country|default:"" }} · last {{ v.last_seen|timesince }} ago</span></label>
+{% if v.blocked %}<span style="color:#cc1016"><strong>Blocked</strong> <span class="muted">{{ v.block_reason }}</span></span>{% endif %}</div><hr>
+{% empty %}<p class="muted">No visitors recorded yet.</p>{% endfor %}
+{% if page %}<p><select name="action" style="width:auto"><option value="block">Block selected</option><option value="unblock">Unblock selected</option>{% if user.is_superuser %}<option value="whitelist">Whitelist selected</option>{% endif %}</select> <button>Apply</button></p>{% endif %}
+{% include "security/_pager.html" %}</form>
+{% endblock %}
