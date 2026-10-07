@@ -1,0 +1,36 @@
+# Installed to /etc/systemd/system/linkedclone.service by provision.sh.
+# After editing by hand:  sudo systemctl daemon-reload && sudo systemctl restart linkedclone
+[Unit]
+Description=LinkedClone — Gunicorn application server
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=notify
+User=linkedclone
+Group=linkedclone
+# Everything goes through the `current` symlink, so promote/rollback only has
+# to switch the link and restart; this file never needs editing again.
+WorkingDirectory=__APP_ROOT__/current
+EnvironmentFile=__APP_ROOT__/current/.env
+ExecStart=__APP_ROOT__/current/venv/bin/gunicorn \
+    --workers 3 \
+    --bind 127.0.0.1:8000 \
+    --access-logfile - \
+    --error-logfile - \
+    --timeout 30 \
+    config.wsgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=on-failure
+RestartSec=5
+
+# Light process-level sandboxing: cheap defense in depth, on top of the
+# application-level hardening in config/settings.py.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=__APP_ROOT__
+
+[Install]
+WantedBy=multi-user.target

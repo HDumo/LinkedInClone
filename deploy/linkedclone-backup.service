@@ -1,0 +1,7 @@
+# Installed to /etc/systemd/system/linkedclone-backup.service by provision.sh.
+[Unit]
+Description=LinkedClone — database and photo backup
+
+[Service]
+Type=oneshot
+ExecStart=__APP_ROOT__/deploy-release.sh backup

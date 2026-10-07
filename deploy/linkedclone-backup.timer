@@ -1,0 +1,11 @@
+# Installed to /etc/systemd/system/linkedclone-backup.timer by provision.sh.
+[Unit]
+Description=LinkedClone — nightly backup
+
+[Timer]
+OnCalendar=*-*-* 03:15:00
+RandomizedDelaySec=15min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
