@@ -287,6 +287,9 @@ class DeployFiles(TestCase):
         unit = (self.DEPLOY / "linkedclone.service").read_text()
         self.assertIn("__APP_ROOT__/current/venv/bin/gunicorn", unit)
         self.assertIn("config.wsgi:application", unit)
+        # gunicorn 26 otherwise tries to create a control socket in a folder the service user can't write
+        self.assertIn("--no-control-socket", unit)
+        self.assertRegex((BASE / "requirements.txt").read_text(), r"gunicorn>=26\.\d+")
         self.assertTrue((BASE / "config" / "wsgi.py").exists())
 
     def test_nginx_serves_media_from_shared_and_static_through_current(self):
