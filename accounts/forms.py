@@ -1,4 +1,5 @@
 from django import forms
+from django.conf import settings
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
@@ -19,6 +20,12 @@ class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
         fields = ("headline", "location", "about", "photo")
+
+    def clean_photo(self):
+        photo = self.cleaned_data.get("photo")
+        if photo and getattr(photo, "size", 0) > settings.MAX_PHOTO_BYTES:
+            raise forms.ValidationError("Photos must be 5 MB or smaller.")
+        return photo
 
 
 class ExperienceForm(forms.ModelForm):
