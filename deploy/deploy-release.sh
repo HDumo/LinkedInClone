@@ -287,7 +287,9 @@ _deploy_worker() {
     "$release_dir/venv/bin/python" manage.py check --deploy
 
     c_yellow "Checking your .env makes sense for a live server (domain, database, email)..."
-    "$release_dir/venv/bin/python" manage.py check_install
+    # As the service user, not root: it opens the database, and a SQLite file
+    # created by root could not be written by the running service afterwards.
+    as_service "$release_dir/venv/bin/python" manage.py check_install
 
     c_yellow "Running the test suite (against a throwaway test database — the live"
     c_yellow "database is never touched by deploy, only by promote)..."
@@ -494,6 +496,14 @@ cmd_promote() {
         local db; db="$(sqlite_file)"
         c_yellow "SQLite in use (no DATABASE_URL in shared/.env), database file: $db"
         c_yellow "Fine for a small site. For real traffic switch to PostgreSQL (docs/INSTALL.md)."
+        # SQLite writes a journal NEXT TO the database, so the file and its
+        # folder must both belong to the service user, whoever created them.
+        local su sg; read -r su sg <<< "$(service_identity)"
+        if [ -n "$su" ]; then
+            mkdir -p "$(dirname "$db")"
+            chown "$su":"${sg:-$su}" "$(dirname "$db")"
+            [ -f "$db" ] && chown "$su":"${sg:-$su}" "$db"
+        fi
         if [ -f "$db" ]; then
             backup_file="$BACKUPS_DIR/pre-promote-$(basename "$target_dir").sqlite3"
             c_yellow "Backing up the database to $backup_file..."
