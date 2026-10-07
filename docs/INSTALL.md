@@ -64,11 +64,36 @@ Change a setting (domain, email, database)? Edit `/opt/linkedclone/shared/.env`,
   deploy-release.sh       the tool above
 ```
 
-Services: `linkedclone` (the app), `nginx` (the front door), `linkedclone-backup.timer` (nightly backup), `postgresql`.
+Services: `linkedclone` (the app), `nginx` (the front door), `linkedclone-backup.timer` (nightly backup at about 03:15), `linkedclone-chores.timer` (daily housekeeping at about 04:20), `postgresql`.
 
-## Email (password reset)
+## Security: what it does and how to run it
 
-Out of the box, password-reset emails are written to the service log instead of being sent, so nothing breaks. To send real mail, put a provider's SMTP details in `shared/.env` (`EMAIL_HOST`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `DEFAULT_FROM_EMAIL`; any provider works) and restart the service. Until then, you can read a reset link with `sudo journalctl -u linkedclone -n 50`.
+All of this is built in and on by default. Administrators and staff manage it at **`/security/`** (staff see a **Security** link in the top bar).
+
+**For members**
+- **Sign-in lockout.** After 3 wrong passwords a member sees "N attempts remaining"; the 4th locks the account for 1 minute, then 2, 3, 5, 10, 30 and 60 minutes for each further wrong try. It applies to `/admin/login/` too. Made-up usernames lock exactly like real ones, so the lockout can't be used to find out who has an account.
+- **Unlock with a code.** "Locked out?" on the sign-in page emails a 6-digit code (valid 10 minutes, five tries, stored only as a hash). The page gives the same answer whether or not the account exists. Asking for or guessing codes is throttled with growing waits.
+- **Password rules.** At least 10 characters, not common or all numbers, not too similar to the name or email, and (setting) not the current password or one of the last 5. Passwords are stored with Argon2. A password reset also signs the person out everywhere and clears a lockout.
+- **Signed-in devices** (`/accounts/devices/`): see where you're signed in, sign out one device or all others. A sign-in from a new device or place adds a notice to Notifications. **Your sign-in activity** (`/accounts/activity/`) lists recent successes and failures.
+
+**For staff and administrators** (`/security/`)
+- **Sign-ins:** every attempt, successful or not, with address, device and (optionally) place; filter by name, address or result. The last 24 hours are summarised at the top.
+- **Locked:** accounts with failed sign-ins, with an Unlock button.
+- **People:** search members; require a new password, sign out everywhere, unlock, deactivate or reactivate. Only administrators can act on staff accounts, and nobody can deactivate themselves.
+- **Visitors:** every address that has visited, with counts. Block or unblock addresses; administrators can also whitelist them. Addresses on the whitelist, your own address, and private or server addresses can never be blocked, and `/admin/` and `/healthz/` always stay reachable so nobody can lock themselves out.
+- **Rules (administrators):** automatic rules such as "20 or more visits within 5 minutes" or "outside the US and 10 sign-in tries in 30 minutes". Tick the conditions you want, choose "block and alert", "block quietly" or "only alert", and use **Preview matches** to see who a rule would catch before saving. Alerts appear in administrators' Notifications.
+- **Settings (administrators):** how long to keep sign-in history (default 365 days), the password-reuse rule, the whitelist, and whether staff can see Trending.
+- **Trending:** page views, visitors, signed-in members, new members, top pages, where visitors came from, devices, and the most liked and commented posts, for 24 hours, 7, 30 or 90 days. It is recorded on the server (no tracking scripts), skips browsers that send "Do Not Track" or "Global Privacy Control", and can be switched off in Settings. Old page views are deleted after 90 days (adjustable).
+
+**Locations (optional).** Country-based rules and "where did this sign-in come from" need a free offline database. Download it once and then about monthly:
+`sudo /opt/linkedclone/deploy-release.sh manage update_ip_location_db`
+(IP geolocation by DB-IP, CC BY 4.0.) Without it everything works; country rules simply never match, so no one is blocked by a missing database.
+
+**Behind nginx.** The site trusts only the *last* address in `X-Forwarded-For`, which nginx sets, so visitors can't fake their address. Don't expose gunicorn (port 8000) to the internet; the provided firewall advice leaves it on 127.0.0.1 only.
+
+## Email (password reset and unlock codes)
+
+Out of the box, password-reset emails and unlock codes are written to the service log instead of being sent, so nothing breaks (but nobody receives them, so configure email before real members rely on them). To send real mail, put a provider's SMTP details in `shared/.env` (`EMAIL_HOST`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `DEFAULT_FROM_EMAIL`; any provider works) and restart the service. Until then, you can read a reset link with `sudo journalctl -u linkedclone -n 50`.
 
 ## Backups
 
@@ -89,12 +114,16 @@ Restore PostgreSQL: `zcat backups/FILE.sql.gz | sudo -u postgres psql linkedclon
 | Pages have no styling | Run `deploy-release.sh status`. If nothing is live, run `install`. Otherwise `promote` again; check `current/staticfiles` exists. |
 | Profile photos give 404 | `sudo ls -ld /opt/linkedclone /opt/linkedclone/shared /opt/linkedclone/shared/media`; they must be readable by everyone. `deploy` repairs the media folder's permissions every time. |
 | "Too many attempts" page | Sign-in is limited to 10 tries a minute, sign-up to 10 an hour and password reset to 5 an hour per address. Wait and retry. |
+| A member says they're locked out | They can use **Locked out?** on the sign-in page, or you can unlock them in **Security → Locked**. |
+| "Access denied." for someone | Their address is blocked. Find it in **Security → Visitors** (the block reason says whether a person or a rule did it) and unblock it, or whitelist it. |
+| Everyone suddenly gets "Access denied." | A rule is too aggressive or your proxy hides real addresses. Turn the rule off in **Security → Rules** (rules never touch `/admin/`, so you can always sign in there). |
+| A staff member can't reach pages and keeps landing on "change password" | An administrator required a new password. They must change it once; or clear it in **Security → People**. |
 | Certificate step fails | DNS for the domain (and `www.`) must already point at this server, with ports 80 and 443 open. Run `--tls` again. |
 | Browser warns about HTTPS right after step 2 | Expected until step 5. Use `http://` until HTTPS is on. |
 | Lost the administrator password | `sudo /opt/linkedclone/deploy-release.sh manage changepassword USERNAME` |
 
 ## What is and isn't included
 
-Included: sign-up and sign-in with throttling, password reset and change, profile photos with size and type checks, security headers, HTTPS with automatic renewal, HSTS, nightly backups, health check, friendly error pages, a robots.txt.
+Included: sign-up and sign-in with throttling, lockout and unlock codes, sign-in history, password reset, change and reuse rules, forced password changes, signed-in devices, IP blocking with whitelist and automatic rules, a staff Security portal, Trending, profile photos with size and type checks, security headers, HTTPS with automatic renewal, HSTS, nightly backups, daily housekeeping, health check, friendly error pages, a robots.txt.
 
-Not included yet: email verification at sign-up, login history, two-factor sign-in, a monitoring service, and a staging environment.
+Not included: two-factor sign-in, email verification at sign-up, "view as this member" impersonation, data export and deletion requests, and the click and scroll tracking Pikes Peak has (it needs JavaScript, which this site deliberately doesn't ship). Also no monitoring service and no staging environment.

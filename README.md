@@ -12,6 +12,7 @@ A LinkedIn-style professional network built with Django.
 - **Jobs:** post jobs, search, apply with a cover letter, applicant list for the poster, "my applications"
 - **Companies:** company pages with their open jobs
 - **Search:** people, jobs and companies from the nav bar
+- **Security:** sign-in history, lockout with escalating waits, unlock-by-email-code, password reuse and forced-change rules, signed-in devices, IP blocking with a whitelist and automatic rules, staff **Security** portal, **Trending** (details in [docs/INSTALL.md](docs/INSTALL.md))
 - **Notifications:** connection requests/accepts, likes, comments, shares, messages, endorsements, applications
 
 ## Run it on your computer
@@ -32,4 +33,4 @@ One-time provisioning, one-command releases, instant rollback, nightly backups a
 
 ## Not built yet
 
-Recommendations, group chat, image posts, email verification at sign-up, login history, two-factor sign-in.
+Recommendations, group chat, image posts, email verification at sign-up, two-factor sign-in, "view as member", data export/deletion requests.
