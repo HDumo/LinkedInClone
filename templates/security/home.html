@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Security{% endblock %}
+{% block content %}
+{% include "security/_nav.html" %}
+<div class="card"><h1>Sign-in history</h1>
+<p class="muted">Last 24 hours: <strong>{{ ok_24h }}</strong> signed in · <strong>{{ failed_24h }}</strong> failed ·
+<a href="{% url 'security_locked' %}"><strong>{{ locked_now }}</strong> locked now</a> ·
+<a href="{% url 'security_visitors' %}?blocked=1"><strong>{{ blocked_ips }}</strong> blocked addresses</a></p>
+<form method="get" class="row" style="justify-content:flex-start"><input name="q" value="{{ q }}" placeholder="Username, address or place" style="max-width:260px">
+<select name="result" style="max-width:220px"><option value="">All results</option><option value="failed"{% if result == "failed" %} selected{% endif %}>All failures</option>
+{% for v, label in results %}<option value="{{ v }}"{% if result == v %} selected{% endif %}>{{ label }}</option>{% endfor %}</select><button>Filter</button></form></div>
+<div class="card">
+{% for e in page %}<p><strong style="color:{% if e.ok %}green{% else %}#cc1016{% endif %}">{{ e.get_result_display }}</strong> · {{ e.username }}
+<span class="muted">· {{ e.device }} · {{ e.ip_address|default:"?" }}{% if e.location %} · {{ e.location }}{% endif %} · {{ e.created_at|date:"M j, g:i a" }}</span></p>
+{% empty %}<p class="muted">No sign-ins recorded yet.</p>{% endfor %}
+{% include "security/_pager.html" %}</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Rule{% endblock %}
+{% block content %}
+{% include "security/_nav.html" %}
+<div class="card"><h1>{% if rule %}Edit rule{% else %}New rule{% endif %}</h1>
+<form method="post">{% csrf_token %}{{ form.non_field_errors }}
+{{ form.name.label_tag }} {{ form.name }}{{ form.name.errors }}
+<p>{{ form.enabled }} {{ form.enabled.label }}</p>
+<p>{{ form.match }}</p><p>{{ form.action }}</p>
+<h2>Conditions</h2><p class="muted">Tick the ones you want and fill in the numbers.</p>
+{% for kind, fields in form.groups %}<div class="card" style="background:var(--bg)">{% for f in fields %}{% if forloop.first %}<label>{{ f }} <strong>{{ f.label }}</strong></label>{% else %}<p>{{ f.label_tag }} {{ f }}{{ f.errors }}</p>{% endif %}{% endfor %}</div>{% endfor %}
+{% if preview %}<div class="card"><strong>Preview:</strong> this rule would match {{ preview.0 }} address{{ preview.0|pluralize:"es" }} seen in the last day.
+{% for m in preview.1 %}<br><span class="muted">{{ m.ip }} · {{ m.country }} · {{ m.visits }} visits{% if m.blocked %} · already blocked{% endif %}</span>{% endfor %}</div>{% endif %}
+<button>Save rule</button> <button class="sec" name="preview" value="1">Preview matches</button></form></div>
+{% endblock %}

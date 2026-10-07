@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Enter your code{% endblock %}
+{% block content %}
+<div class="card"><h1>Enter your code</h1><p class="muted">Check your email for a 6-digit code for <strong>{{ identifier }}</strong>.</p>
+<form method="post">{% csrf_token %}<p><input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456" required autofocus></p><button>Unlock</button></form>
+<p class="muted"><a href="{% url 'unlock_request' %}">Send a new code</a></p></div>
+{% endblock %}

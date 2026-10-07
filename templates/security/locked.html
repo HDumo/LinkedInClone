@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Locked accounts{% endblock %}
+{% block content %}
+{% include "security/_nav.html" %}
+<div class="card"><h1>Locked accounts</h1>
+<p class="muted">Accounts (and made-up usernames) with failed sign-ins. People can also unlock themselves with a code sent to their email.</p>
+{% for r in rows %}<div class="row"><span><strong>{{ r.username }}</strong>{% if not r.user %} <span class="muted">(no such account)</span>{% endif %}<br>
+<span class="muted">{{ r.failed_attempts }} failed attempt{{ r.failed_attempts|pluralize }} · last {{ r.last_failed_at|timesince }} ago ·
+{% if r.locked_until and r.locked_until > now %}<strong style="color:#cc1016">locked until {{ r.locked_until|date:"g:i a" }}</strong>{% else %}not locked{% endif %}</span></span>
+<form class="inline" method="post">{% csrf_token %}<input type="hidden" name="lockout_id" value="{{ r.id }}"><button class="sec">Unlock</button></form></div><hr>
+{% empty %}<p class="muted">No failed sign-ins on record.</p>{% endfor %}</div>
+{% endblock %}

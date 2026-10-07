@@ -1,0 +1,10 @@
+<div class="card row" style="padding:8px 16px">
+  <span>
+  <a href="{% url 'security_home' %}">Sign-ins</a> ·
+  <a href="{% url 'security_locked' %}">Locked</a> ·
+  <a href="{% url 'security_people' %}">People</a> ·
+  <a href="{% url 'security_visitors' %}">Visitors</a> ·
+  <a href="{% url 'security_trending' %}">Trending</a>
+  {% if user.is_superuser %} · <a href="{% url 'security_rules' %}">Rules</a> · <a href="{% url 'security_settings' %}">Settings</a>{% endif %}
+  </span>
+</div>

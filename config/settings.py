@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "core",
+    "security",
     "accounts",
     "feed",
     "network",
@@ -79,7 +80,13 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "core.middleware.SecurityHeadersMiddleware",
+    # Visitor counting/blocking runs before anything else touches the database.
+    "security.middleware.MustChangePasswordMiddleware",
+    "security.middleware.LastSeenMiddleware",
+    "security.middleware.PageViewTrackingMiddleware",
 ]
+MIDDLEWARE.insert(MIDDLEWARE.index("django.contrib.sessions.middleware.SessionMiddleware"),
+                  "security.middleware.VisitorLoggingMiddleware")
 
 if not (DEBUG or TESTING):  # runserver already serves static files in development
     MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
@@ -138,6 +145,14 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 10}},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+    {"NAME": "security.events.PasswordReuseValidator"},
+]
+# Argon2 is the strongest hasher Django supports; the others stay listed so
+# existing passwords still verify (and are upgraded at the next sign-in).
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
 ]
 if TESTING:  # fast hashing so the suite runs in seconds
     PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
@@ -177,6 +192,8 @@ MEDIA_ROOT = BASE_DIR / "media"
 # restrictive server umask would otherwise leave new folders untraversable.
 FILE_UPLOAD_PERMISSIONS = 0o644
 FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
+# Optional offline IP-location database (see `manage.py update_ip_location_db`).
+IP_LOCATION_DB = os.environ.get("IP_LOCATION_DB") or str(BASE_DIR / "var" / "dbip-city-lite.mmdb")
 DATA_UPLOAD_MAX_MEMORY_SIZE = 6 * 1024 * 1024
 MAX_PHOTO_BYTES = 5 * 1024 * 1024
 

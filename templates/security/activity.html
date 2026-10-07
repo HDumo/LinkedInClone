@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Sign-in activity{% endblock %}
+{% block content %}
+<div class="card"><h1>Your recent sign-in activity</h1><p class="muted">If you see something you don't recognise, <a href="{% url 'password_change' %}">change your password</a> and sign out of other devices.</p>
+{% for e in events %}<p><strong style="color:{% if e.ok %}green{% else %}#cc1016{% endif %}">{{ e.get_result_display }}</strong> <span class="muted">· {{ e.device }} · {{ e.ip_address|default:"?" }}{% if e.location %} · {{ e.location }}{% endif %} · {{ e.created_at|date:"M j, g:i a" }}</span></p>{% empty %}<p class="muted">Nothing yet.</p>{% endfor %}
+<p><a href="{% url 'signed_in_devices' %}">Manage signed-in devices</a></p></div>
+{% endblock %}
