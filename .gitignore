@@ -3,3 +3,7 @@ __pycache__/
 *.sqlite3
 .env
 media/
+venv/
+staticfiles/
+var/
+*.log

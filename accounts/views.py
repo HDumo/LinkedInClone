@@ -6,6 +6,7 @@ from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
+from django_ratelimit.decorators import ratelimit
 
 from network.models import relationship
 from notifications.models import notify
@@ -14,6 +15,7 @@ from .forms import EducationForm, ExperienceForm, ProfileForm, SignupForm, Skill
 from .models import Endorsement, Skill
 
 
+@ratelimit(key="ip", rate="10/h", method="POST", block=True)
 def signup(request):
     if request.user.is_authenticated:
         return redirect("home")

@@ -1,8 +1,9 @@
-<!doctype html>
+{% load static %}<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="{% static 'favicon.svg' %}" type="image/svg+xml">
 <title>{% block title %}LinkedClone{% endblock %}</title>
 <style>
 :root{--blue:#0a66c2;--bg:#f3f2ef;--card:#fff;--text:#191919;--muted:#666;--line:#e0dfdc}
@@ -36,6 +37,7 @@ ul{padding-left:18px}.errorlist{color:#cc1016;list-style:none;padding:0;margin:4
   <a href="{% url 'inbox' %}">Messaging{% if unread_messages %} <span class="badge">{{ unread_messages }}</span>{% endif %}</a>
   <a href="{% url 'notifications' %}">Notifications{% if unread_notifications %} <span class="badge">{{ unread_notifications }}</span>{% endif %}</a>
   <a href="{% url 'profile' user.username %}">Me</a>
+  <a href="{% url 'password_change' %}">Settings</a>
   <form action="{% url 'search' %}" method="get"><input name="q" placeholder="Search people, jobs, companies" aria-label="Search"></form>
   <form action="{% url 'logout' %}" method="post">{% csrf_token %}<button class="sec">Sign out</button></form>
   {% else %}
