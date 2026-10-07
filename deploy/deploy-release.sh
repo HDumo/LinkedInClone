@@ -124,7 +124,9 @@ health_check() {
 
 restart_service() {
     c_yellow "Restarting $SERVICE_NAME..."
-    systemctl restart "$SERVICE_NAME"
+    # `200>&-` closes our lock descriptor for this one command, so the
+    # restarted service can never inherit (and keep holding) the deploy lock.
+    systemctl restart "$SERVICE_NAME" 200>&-
 }
 
 # Reads a "Key=value" line out of a systemd unit file, if present.
