@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}{{ other.profile.display_name }}{% endblock %}
+{% block content %}
+<div class="card"><h1><a href="{% url 'profile' other.username %}">{{ other.profile.display_name }}</a></h1>
+{% for m in messages_list %}<div class="bubble{% if m.sender_id == user.id %} me{% endif %}">{{ m.body|linebreaksbr }}<div class="muted">{{ m.created|timesince }} ago</div></div>{% empty %}<p class="muted">Say hello!</p>{% endfor %}
+<form method="post">{% csrf_token %}<textarea name="body" rows="2" required></textarea><p><button>Send</button></p></form></div>
+{% endblock %}

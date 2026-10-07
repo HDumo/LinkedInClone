@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ profile.display_name }}{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="row"><div class="row" style="justify-content:flex-start">
+    {% if profile.photo %}<img class="avatar" src="{{ profile.photo.url }}" alt="">{% else %}<div class="avatar"></div>{% endif %}
+    <div><h1>{{ profile.display_name }}</h1><div>{{ profile.headline }}</div><div class="muted">{{ profile.location }}</div></div></div>
+    <div>
+    {% if is_me %}<a class="btn sec" href="{% url 'profile_edit' %}">Edit profile</a>
+    {% elif rel == "none" %}<form class="inline" method="post" action="{% url 'connect' owner.id %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button>Connect</button></form>
+    {% elif rel == "received" %}<form class="inline" method="post" action="{% url 'connect' owner.id %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button>Accept request</button></form>
+    {% elif rel == "sent" %}<span class="muted">Request pending</span>
+    {% elif rel == "connected" %}<a class="btn" href="{% url 'thread' owner.id %}">Message</a>{% endif %}
+    </div></div>
+</div>
+{% if profile.about %}<div class="card"><h2>About</h2><p>{{ profile.about|linebreaksbr }}</p></div>{% endif %}
+<div class="card"><div class="row"><h2>Experience</h2>{% if is_me %}<a href="{% url 'add_experience' %}">+ Add</a>{% endif %}</div>
+{% for e in profile.experiences.all %}<p><strong>{{ e.title }}</strong> · {{ e.company }}<br><span class="muted">{{ e.start_date|date:"M Y" }} – {% if e.end_date %}{{ e.end_date|date:"M Y" }}{% else %}Present{% endif %}</span><br>{{ e.description }}</p>{% empty %}<p class="muted">No experience yet.</p>{% endfor %}</div>
+<div class="card"><div class="row"><h2>Education</h2>{% if is_me %}<a href="{% url 'add_education' %}">+ Add</a>{% endif %}</div>
+{% for e in profile.educations.all %}<p><strong>{{ e.school }}</strong>{% if e.degree %} · {{ e.degree }}{% endif %}<br><span class="muted">{{ e.start_year|default:"" }} – {{ e.end_year|default:"" }}</span></p>{% empty %}<p class="muted">No education yet.</p>{% endfor %}</div>
+<div class="card"><div class="row"><h2>Skills</h2>{% if is_me %}<a href="{% url 'add_skill' %}">+ Add</a>{% endif %}</div>
+{% for s in skills %}<div class="row"><span>{{ s.name }} <span class="muted">· {{ s.endorsements.all|length }} endorsement{{ s.endorsements.all|length|pluralize }}</span></span>
+{% if not is_me and user.is_authenticated and s.id not in endorsed %}<form class="inline" method="post" action="{% url 'endorse' s.id %}">{% csrf_token %}<button class="sec">Endorse</button></form>{% endif %}</div>{% empty %}<p class="muted">No skills yet.</p>{% endfor %}</div>
+{% endblock %}

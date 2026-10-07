@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}LinkedClone{% endblock %}</title>
+<style>
+:root{--blue:#0a66c2;--bg:#f3f2ef;--card:#fff;--text:#191919;--muted:#666;--line:#e0dfdc}
+@media (prefers-color-scheme:dark){:root{--bg:#1b1f23;--card:#282d33;--text:#eee;--muted:#aaa;--line:#3d444c;--blue:#71b7fb}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,sans-serif}
+a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}
+nav{background:var(--card);border-bottom:1px solid var(--line);padding:8px 16px;display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+nav .brand{font-weight:700;font-size:1.2rem}nav form{margin:0 0 0 auto;display:flex;gap:6px}
+.badge{background:#cc1016;color:#fff;border-radius:10px;padding:0 6px;font-size:.75rem}
+main{max-width:760px;margin:16px auto;padding:0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:12px}
+.muted{color:var(--muted);font-size:.9rem}h1,h2,h3{margin:.2em 0 .5em}
+input,textarea,select{width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--text);font:inherit}
+nav input{width:200px}
+button,.btn{background:var(--blue);color:#fff;border:0;border-radius:20px;padding:6px 16px;font:inherit;cursor:pointer;display:inline-block}
+.btn.sec,button.sec{background:transparent;color:var(--blue);border:1px solid var(--blue)}
+form.inline{display:inline}.row{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.avatar{width:56px;height:56px;border-radius:50%;object-fit:cover;background:var(--line)}
+.msgs li{background:#0a66c215;border-left:3px solid var(--blue);padding:8px 12px;margin-bottom:8px;list-style:none;border-radius:4px}
+ul{padding-left:18px}.errorlist{color:#cc1016;list-style:none;padding:0;margin:4px 0}
+.bubble{padding:8px 12px;border-radius:12px;margin:6px 0;max-width:80%;background:var(--bg)}.bubble.me{margin-left:auto;background:#0a66c230}
+</style>
+</head>
+<body>
+<nav>
+  <a class="brand" href="{% url 'home' %}">in&nbsp;LinkedClone</a>
+  {% if user.is_authenticated %}
+  <a href="{% url 'home' %}">Home</a>
+  <a href="{% url 'my_network' %}">My Network</a>
+  <a href="{% url 'job_list' %}">Jobs</a>
+  <a href="{% url 'inbox' %}">Messaging{% if unread_messages %} <span class="badge">{{ unread_messages }}</span>{% endif %}</a>
+  <a href="{% url 'notifications' %}">Notifications{% if unread_notifications %} <span class="badge">{{ unread_notifications }}</span>{% endif %}</a>
+  <a href="{% url 'profile' user.username %}">Me</a>
+  <form action="{% url 'search' %}" method="get"><input name="q" placeholder="Search people, jobs, companies" aria-label="Search"></form>
+  <form action="{% url 'logout' %}" method="post">{% csrf_token %}<button class="sec">Sign out</button></form>
+  {% else %}
+  <span style="margin-left:auto"></span>
+  <a href="{% url 'login' %}">Sign in</a> <a class="btn" href="{% url 'signup' %}">Join now</a>
+  {% endif %}
+</nav>
+<main>
+{% if messages %}<ul class="msgs">{% for m in messages %}<li>{{ m }}</li>{% endfor %}</ul>{% endif %}
+{% block content %}{% endblock %}
+</main>
+</body>
+</html>

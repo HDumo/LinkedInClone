@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}{{ company.name }}{% endblock %}
+{% block content %}
+<div class="card"><h1>{{ company.name }}</h1>{% if company.website %}<a href="{{ company.website }}" rel="nofollow noopener">{{ company.website }}</a>{% endif %}<p>{{ company.description|linebreaksbr }}</p></div>
+<div class="card"><h2>Open jobs</h2>{% for j in jobs %}<p><a href="{% url 'job_detail' j.id %}">{{ j.title }}</a> <span class="muted">{{ j.location }}</span></p>{% empty %}<p class="muted">No open jobs.</p>{% endfor %}</div>
+{% endblock %}

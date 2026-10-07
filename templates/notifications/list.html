@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}Notifications{% endblock %}
+{% block content %}
+<div class="card"><h1>Notifications</h1>
+{% for n in items %}<p{% if n.id in unread_ids %} style="font-weight:600"{% endif %}><a href="{{ n.url|default:'#' }}">{{ n.actor.profile.display_name }} {{ n.verb }}</a> <span class="muted">· {{ n.created|timesince }} ago</span></p>{% empty %}<p class="muted">Nothing yet.</p>{% endfor %}</div>
+{% endblock %}

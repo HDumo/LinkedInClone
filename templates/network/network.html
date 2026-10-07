@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}My Network{% endblock %}
+{% block content %}
+<div class="card"><div class="row"><h1>My Network</h1><a class="btn sec" href="{% url 'people' %}">Find people</a></div></div>
+{% if invites %}<div class="card"><h2>Invitations</h2>
+{% for i in invites %}<div class="row"><a href="{% url 'profile' i.from_user.username %}">{{ i.from_user.profile.display_name }}</a>
+<span><form class="inline" method="post" action="{% url 'respond' i.id %}">{% csrf_token %}<input type="hidden" name="action" value="accept"><button>Accept</button></form>
+<form class="inline" method="post" action="{% url 'respond' i.id %}">{% csrf_token %}<input type="hidden" name="action" value="decline"><button class="sec">Decline</button></form></span></div>{% endfor %}</div>{% endif %}
+<div class="card"><h2>Connections ({{ connections|length }})</h2>
+{% for c in connections %}<div class="row"><span><a href="{% url 'profile' c.username %}">{{ c.profile.display_name }}</a><br><span class="muted">{{ c.profile.headline }}</span></span>
+<span><a href="{% url 'thread' c.id %}">Message</a> <form class="inline" method="post" action="{% url 'remove_connection' c.id %}">{% csrf_token %}<button class="sec">Remove</button></form></span></div>{% empty %}<p class="muted">No connections yet.</p>{% endfor %}</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card"><form method="post" action="{% url 'create_post' %}">{% csrf_token %}
+<textarea name="body" rows="3" maxlength="3000" placeholder="Start a post" required></textarea><p><button>Post</button></p></form></div>
+{% for p in posts %}
+<div class="card">
+  <div class="row"><div><a href="{% url 'profile' p.author.username %}"><strong>{{ p.author.profile.display_name }}</strong></a><div class="muted">{{ p.author.profile.headline }} · {{ p.created|timesince }} ago</div></div>
+  {% if p.author_id == user.id %}<form class="inline" method="post" action="{% url 'delete_post' p.id %}">{% csrf_token %}<button class="sec">Delete</button></form>{% endif %}</div>
+  {% if p.body %}<p>{{ p.body|linebreaksbr }}</p>{% endif %}
+  {% if p.shared_from %}<div class="card" style="background:var(--bg)"><strong>{{ p.shared_from.author.profile.display_name }}</strong><p>{{ p.shared_from.body|linebreaksbr }}</p></div>{% endif %}
+  <div class="row"><span class="muted">{{ p.likes.all|length }} like{{ p.likes.all|length|pluralize }} · {{ p.comments.all|length }} comment{{ p.comments.all|length|pluralize }}</span>
+  <span><form class="inline" method="post" action="{% url 'toggle_like' p.id %}">{% csrf_token %}<button class="sec">{% if p.id in liked %}Unlike{% else %}Like{% endif %}</button></form>
+  <form class="inline" method="post" action="{% url 'share_post' p.id %}">{% csrf_token %}<button class="sec">Share</button></form></span></div>
+  {% for c in p.comments.all %}<p><strong>{{ c.user.username }}</strong>: {{ c.body }}</p>{% endfor %}
+  <form method="post" action="{% url 'add_comment' p.id %}">{% csrf_token %}<input name="body" maxlength="1000" placeholder="Add a comment" required></form>
+</div>
+{% empty %}<div class="card muted">Nothing here yet. Post something or <a href="{% url 'people' %}">find people to connect with</a>.</div>{% endfor %}
+{% endblock %}

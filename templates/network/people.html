@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}People{% endblock %}
+{% block content %}
+<div class="card"><h1>People</h1><form method="get"><input name="q" value="{{ q }}" placeholder="Name, username or headline"></form></div>
+{% for u, rel in rows %}<div class="card row"><span><a href="{% url 'profile' u.username %}">{{ u.profile.display_name }}</a><br><span class="muted">{{ u.profile.headline }}</span></span>
+{% if rel == "none" or rel == "received" %}<form class="inline" method="post" action="{% url 'connect' u.id %}">{% csrf_token %}<button>{% if rel == "received" %}Accept{% else %}Connect{% endif %}</button></form>
+{% elif rel == "sent" %}<span class="muted">Pending</span>{% else %}<span class="muted">Connected</span>{% endif %}</div>
+{% empty %}<div class="card muted">No people found.</div>{% endfor %}
+{% endblock %}

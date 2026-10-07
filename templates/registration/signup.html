@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}Join{% endblock %}
+{% block content %}
+<div class="card"><h1>Join LinkedClone</h1>
+<form method="post">{% csrf_token %}{{ form.as_p }}<button>Agree &amp; join</button></form></div>
+{% endblock %}
