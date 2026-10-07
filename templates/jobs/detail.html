@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ job.title }}{% endblock %}
+{% block content %}
+<div class="card"><h1>{{ job.title }}</h1><div class="muted">{% if job.company %}<a href="{% url 'company_detail' job.company.slug %}">{{ job.company }}</a>{% else %}Independent{% endif %} · {{ job.location }}</div>
+<p>{{ job.description|linebreaksbr }}</p>
+{% if is_owner %}<p class="muted">You posted this job.</p>
+{% elif applied %}<p class="muted">You have applied.</p>
+{% else %}<form method="post" action="{% url 'job_apply' job.id %}">{% csrf_token %}<textarea name="cover_letter" rows="3" placeholder="Cover letter (optional)"></textarea><p><button>Apply</button></p></form>{% endif %}</div>
+{% if is_owner %}<div class="card"><h2>Applicants ({{ applications|length }})</h2>
+{% for a in applications %}<p><a href="{% url 'profile' a.applicant.username %}">{{ a.applicant.profile.display_name }}</a><br>{{ a.cover_letter }}</p>{% empty %}<p class="muted">No applicants yet.</p>{% endfor %}</div>{% endif %}
+{% endblock %}

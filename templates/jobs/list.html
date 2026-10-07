@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Jobs{% endblock %}
+{% block content %}
+<div class="card"><div class="row"><h1>Jobs</h1><span><a class="btn sec" href="{% url 'my_applications' %}">My applications</a> <a class="btn sec" href="{% url 'company_list' %}">Companies</a> <a class="btn" href="{% url 'job_create' %}">Post a job</a></span></div>
+<form method="get"><input name="q" value="{{ q }}" placeholder="Title, company, location"></form></div>
+{% for j in jobs %}<div class="card"><a href="{% url 'job_detail' j.id %}"><strong>{{ j.title }}</strong></a><div class="muted">{{ j.company|default:"Independent" }} · {{ j.location }} · {{ j.created|timesince }} ago</div></div>{% empty %}<div class="card muted">No jobs found.</div>{% endfor %}
+{% endblock %}

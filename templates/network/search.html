@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Search{% endblock %}
+{% block content %}
+<div class="card"><h1>Search results for “{{ q }}”</h1></div>
+<div class="card"><h2>People</h2>{% for u in users %}<p><a href="{% url 'profile' u.username %}">{{ u.profile.display_name }}</a> <span class="muted">{{ u.profile.headline }}</span></p>{% empty %}<p class="muted">None</p>{% endfor %}</div>
+<div class="card"><h2>Jobs</h2>{% for j in jobs %}<p><a href="{% url 'job_detail' j.id %}">{{ j.title }}</a></p>{% empty %}<p class="muted">None</p>{% endfor %}</div>
+<div class="card"><h2>Companies</h2>{% for c in companies %}<p><a href="{% url 'company_detail' c.slug %}">{{ c.name }}</a></p>{% empty %}<p class="muted">None</p>{% endfor %}</div>
+{% endblock %}

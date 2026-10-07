@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Messaging{% endblock %}
+{% block content %}
+<div class="card"><h1>Messaging</h1>
+{% for other, last, unread in threads %}<div class="row"><a href="{% url 'thread' other.id %}"><strong>{{ other.profile.display_name }}</strong></a>{% if unread %}<span class="badge">{{ unread }}</span>{% endif %}<span class="muted">{{ last.body|truncatechars:60 }}</span></div><hr>{% empty %}<p class="muted">No conversations yet.</p>{% endfor %}</div>
+{% if friends %}<div class="card"><h2>Start a conversation</h2>{% for f in friends %}<p><a href="{% url 'thread' f.id %}">{{ f.profile.display_name }}</a></p>{% endfor %}</div>{% endif %}
+{% endblock %}

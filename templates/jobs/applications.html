@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block title %}My applications{% endblock %}
+{% block content %}
+<div class="card"><h1>My applications</h1>{% for a in applications %}<p><a href="{% url 'job_detail' a.job.id %}">{{ a.job.title }}</a> <span class="muted">{{ a.job.company|default:"" }} · applied {{ a.created|timesince }} ago</span></p>{% empty %}<p class="muted">You have not applied to any jobs.</p>{% endfor %}</div>
+{% endblock %}

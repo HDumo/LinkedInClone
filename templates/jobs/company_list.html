@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}Companies{% endblock %}
+{% block content %}
+<div class="card"><div class="row"><h1>Companies</h1><a class="btn" href="{% url 'company_create' %}">Create page</a></div>
+{% for c in companies %}<p><a href="{% url 'company_detail' c.slug %}">{{ c.name }}</a></p>{% empty %}<p class="muted">No companies yet.</p>{% endfor %}</div>
+{% endblock %}
