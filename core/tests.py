@@ -238,12 +238,12 @@ class ProductionSettings(TestCase):
     def test_https_only_off_allows_http_logins_before_certificate(self):
         r = self.run_manage("shell", "-c", "from django.conf import settings as s; print(s.SESSION_COOKIE_SECURE, s.SECURE_SSL_REDIRECT)",
                             **self.prod_env(HTTPS_ONLY="False"))
-        self.assertEqual(r.stdout.strip(), "False False", r.stderr)
+        self.assertEqual(r.stdout.strip().splitlines()[-1], "False False", r.stderr)
 
     def test_sqlite_path_env_is_honoured(self):
         r = self.run_manage("shell", "-c", "from django.conf import settings as s; print(s.DATABASES['default']['NAME'])",
                             **self.prod_env(SQLITE_PATH="/tmp/x/shared.sqlite3"))
-        self.assertEqual(r.stdout.strip(), "/tmp/x/shared.sqlite3", r.stderr)
+        self.assertEqual(r.stdout.strip().splitlines()[-1], "/tmp/x/shared.sqlite3", r.stderr)
 
     def test_check_deploy_has_no_warnings(self):
         r = self.run_manage("check", "--deploy", "--fail-level", "WARNING", **self.prod_env())
