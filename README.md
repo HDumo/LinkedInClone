@@ -14,12 +14,17 @@ A LinkedIn-style professional network built with Django.
 - **Search:** people, jobs and companies from the nav bar
 - **Notifications:** connection requests/accepts, likes, comments, shares, messages, endorsements, applications
 
-## Run it
+## Run it on your computer
 
+    cp .env.example .env            # then set DEBUG=True in .env
     pip install -r requirements.txt
     python manage.py migrate
     python manage.py seed_demo      # optional: alice/bob/carol/dave, password demo-pass-123
     python manage.py runserver
+
+## Put it on a server
+
+One-time provisioning, one-command releases, instant rollback, nightly backups and HTTPS are built in: see **[docs/INSTALL.md](docs/INSTALL.md)**. The release tooling in `deploy/` is adapted from the Pikes Peak Clean deploy script.
 
 ## Test
 
@@ -27,6 +32,4 @@ A LinkedIn-style professional network built with Django.
 
 ## Not built yet
 
-Recommendations, group chat, image posts, email notifications, login history and rate limiting,
-password reset emails, and production settings (this is a development configuration: `DEBUG=True`,
-SQLite, hard-coded `SECRET_KEY`). Do not deploy as is.
+Recommendations, group chat, image posts, email verification at sign-up, login history, two-factor sign-in.

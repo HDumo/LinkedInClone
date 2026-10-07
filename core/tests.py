@@ -251,3 +251,53 @@ class ProductionSettings(TestCase):
     def test_check_deploy_has_no_warnings(self):
         r = self.run_manage("check", "--deploy", "--fail-level", "WARNING", **self.prod_env())
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+
+class DeployFiles(TestCase):
+    """The server tooling can't be fully run in CI, so guard what can be checked."""
+
+    DEPLOY = BASE / "deploy"
+
+    def test_shell_scripts_are_valid_bash_and_executable(self):
+        for name in ("deploy-release.sh", "provision.sh"):
+            path = self.DEPLOY / name
+            self.assertTrue(os.access(path, os.X_OK), f"{name} is not executable")
+            r = subprocess.run(["bash", "-n", str(path)], capture_output=True, text=True)
+            self.assertEqual(r.returncode, 0, r.stderr)
+
+    def test_help_works_without_root_or_a_server(self):
+        for name in ("deploy-release.sh", "provision.sh"):
+            r = subprocess.run([str(self.DEPLOY / name), "--help"], capture_output=True, text=True)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertIn("USAGE" if name.startswith("deploy") else "Options", r.stdout)
+
+    def test_unknown_command_is_rejected(self):
+        r = subprocess.run([str(self.DEPLOY / "deploy-release.sh"), "frobnicate"], capture_output=True, text=True)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("Unknown command", r.stdout + r.stderr)
+
+    def test_templates_use_only_placeholders_provision_fills_in(self):
+        known = {"__APP_ROOT__", "__DOMAIN__", "__SERVER_NAMES__"}
+        for f in self.DEPLOY.iterdir():
+            if f.suffix in (".conf", ".service", ".timer") and f.name != "deploy.conf":
+                found = set(re.findall(r"__[A-Z_]+__", f.read_text()))
+                self.assertLessEqual(found, known, f"{f.name} has unknown placeholders {found - known}")
+
+    def test_service_unit_points_at_the_current_symlink_and_real_wsgi_module(self):
+        unit = (self.DEPLOY / "linkedclone.service").read_text()
+        self.assertIn("__APP_ROOT__/current/venv/bin/gunicorn", unit)
+        self.assertIn("config.wsgi:application", unit)
+        self.assertTrue((BASE / "config" / "wsgi.py").exists())
+
+    def test_nginx_serves_media_from_shared_and_static_through_current(self):
+        for name in ("nginx.conf", "nginx-http.conf"):
+            text = (self.DEPLOY / name).read_text()
+            self.assertIn("alias __APP_ROOT__/current/staticfiles/;", text)
+            self.assertIn("alias __APP_ROOT__/shared/media/;", text)
+            self.assertIn("X-Forwarded-For $proxy_add_x_forwarded_for", text)  # core.ip.client_ip relies on this
+
+    def test_env_example_documents_every_setting_the_provisioner_writes(self):
+        text = (BASE / ".env.example").read_text()
+        for key in ("DEBUG", "DJANGO_SECRET_KEY", "ALLOWED_HOSTS", "CSRF_TRUSTED_ORIGINS", "HTTPS_ONLY",
+                    "DATABASE_URL", "SQLITE_PATH", "DEFAULT_FROM_EMAIL"):
+            self.assertRegex(text, rf"(?m)^{key}=", key)
